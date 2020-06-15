@@ -1,0 +1,169 @@
+<html>
+  <head>
+    <title>Network Graph With Named Nodes</title>
+  </head>
+    <body>
+    <script src="https://d3js.org/d3.v4.min.js"></script>
+    <script src="https://d3js.org/d3-color.v1.min.js"></script>
+    <script src="https://d3js.org/d3-dispatch.v1.min.js"></script>
+    <script src="https://d3js.org/d3-drag.v1.min.js"></script>
+    <script src="https://d3js.org/d3-ease.v1.min.js"></script>
+    <script src="https://d3js.org/d3-force.v2.min.js"></script>
+    <script src="https://d3js.org/d3-interpolate.v1.min.js"></script>
+    <script src="https://d3js.org/d3-quadtree.v1.min.js"></script>
+    <script src="https://d3js.org/d3-selection.v1.min.js"></script>
+    <script src="https://d3js.org/d3-timer.v1.min.js"></script>
+    <script src="https://d3js.org/d3-transition.v1.min.js"></script>
+    <script src="https://d3js.org/d3-zoom.v1.min.js"></script>
+    <script>
+      chart = function() {
+        data = /* TODO data goes here */
+
+        const regularColor = "#224";
+        const highlightColor = "#22e";
+
+        const width = 1200;
+        const height = 1200;
+
+        const edges = data.edges.map(d => Object.create(d));
+        const nodes = data.nodes.map(d => Object.create(d));
+
+        // Initialize d3-zoom
+        const zoom = d3.zoom()
+          .scaleExtent([1, 10])
+          .on("zoom", zoomed);
+
+        // Initialize the so simulation that formats the node graph
+        const simulation = d3.forceSimulation(nodes)
+            .force("link", d3.forceLink(edges).id(d => d.id).strength(2))
+            .force("charge", d3.forceManyBody().strength(-4))
+            .force('collision', d3.forceCollide().radius(function(d) {
+              return 40; // Keep the nodes nicely separated by giving them circular collision bubbles
+            }))
+            .force("center", d3.forceCenter(width / 2, height / 2));
+
+        // Create an svg in the body element
+        const svg = d3.select('body').append("svg")
+            .attr("viewBox", [0, 0, width, height])
+            .attr("width", "100%")
+            .attr("height", window.innerHeight)
+            .call(zoom)
+
+        // Create an svg group element for the overall graph to allow zooming
+        const overall = svg.append("g")
+
+        // Create a edge for each node connection
+        const edge = overall.append("g")
+            .attr("stroke", regularColor)
+            .attr("stroke-opacity", 0.8)
+          .selectAll("line")
+          .data(edges)
+          .enter()
+            .append("line")
+            .attr("stroke-width", d => 4);
+
+        // Create a svg group for each node
+        const node = overall.append("g")
+          .selectAll("g")
+          .data(nodes)
+          .enter()
+            .append("svg");
+
+        // Create a svg rect element for each node to act as the background
+        const nodeSquares = node.append("rect")
+          .attr("width", 20)
+          .attr("height", 20)
+          .attr("ry", 10)
+          .attr("rx", 10)
+          .attr("fill", "#224")
+
+        // Create a text element for each node to act as the background
+        const nodeText = node.append("a")
+          .attr("href", d => "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/" + d.id)
+          .append("text")
+          .text(d => d.id)
+          .attr("fill", "#fff")
+          .attr("font-family", "sans-serif")
+          .on("mouseover", mouseOverRelations)
+          .on("mouseout", mouseOffRelations);
+
+        // format each node by setting its size based on the length of the text
+        node.nodes().forEach( (el) => {
+          // get each elements text and rect node
+          const rect = el.getElementsByTagName("rect")[0];
+          const text = el.getElementsByTagName("text")[0];
+
+          // Get the size of the text box and set the background box to be that size plus some margin
+          const textBox = text.getBBox();
+          rect.setAttribute("width", textBox.width + 20);
+          rect.setAttribute("height", textBox.height + 10);
+
+          // center the text in the text box
+          const rectBox = rect.getBBox();
+          text.setAttribute("y", textBox.height);
+          text.setAttribute("x", 10);
+
+          // center the node on where the line is going to connect to
+          el.setAttribute("transform", "translate(" + -(rectBox.width / 2) + "," + -(rectBox.height / 3) + ")")
+        });
+
+        // set up the simulation to update the nodes
+        simulation.on("tick", () => {
+          node
+                .attr("x", d => d.x)
+                .attr("y", d => d.y);
+          edge
+              .attr("x1", d => d.source.x)
+              .attr("y1", d => d.source.y)
+              .attr("x2", d => d.target.x)
+              .attr("y2", d => d.target.y);
+
+        });
+
+        // whenever the user zooms, handle that zoom by transforming the top level group
+        function zoomed() {
+          overall.attr("transform", d3.event.transform);
+        }
+
+        // Get a list of svg group nodes that are releated to a given tag
+        function getRelatedNodes(nodeName) {
+          relatedNodes = [];
+          for (var relatedNode of node.nodes()) {
+            if (relatedNode.textContent == nodeName) {
+              relatedNodes.push(relatedNode);
+            }
+          }
+          return relatedNodes;
+        }
+
+        // set nodes that are related to a tag and color their backgroud
+        function setRelatedNodesColor(nodeName, color) {
+          getRelatedNodes(nodeName).forEach((node) => {
+            node.getElementsByTagName("rect")[0].setAttribute("fill", color);
+          });
+        }
+
+        // Show connections between nodes when they are hovered over
+        function mouseOverRelations(d, i) {
+          // Hightlight associated nodes
+          for (d2 of data.edges) {
+            if (d2.source == d.id) {
+              setRelatedNodesColor(d2.target, highlightColor);
+            } else if (d2.target == d.id) {
+              setRelatedNodesColor(d2.source, highlightColor);
+            }
+          }
+        }
+
+        // Remove highlighting from nodes over mousing off them
+        function mouseOffRelations(d, i) {
+          // reset all nodes
+          for (var relatedNode of node.nodes()) {
+            relatedNode.getElementsByTagName("rect")[0].setAttribute("fill", regularColor);
+          }
+        }
+        return svg.node();
+      }();
+    </script>
+  </body>
+</html>

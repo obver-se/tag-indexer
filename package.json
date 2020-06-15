@@ -1,0 +1,19 @@
+{
+  "name": "tag-indexer",
+  "version": "1.0.0",
+  "description": "It indexes tags",
+  "main": "run.js",
+  "dependencies": {
+    "cheerio": "^1.0.0-rc.3",
+    "html-tags": "^3.1.0",
+    "i": "^0.3.6",
+    "supercrawler": "^2.0.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "scrape": "node scrape.js > output_data",
+    "mash": "node mash.js > output.json"
+  },
+  "author": "",
+  "license": "AGPL-3.0"
+}
