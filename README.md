@@ -1,4 +1,5 @@
 # tag-indexer
+# [See it in action](https://obver.se/~sofa/Graph-of-Related-HTML5-Tags)
 ## About
 tag-indexer is a Node.js program that scrapes websites and records each pages tag usage and generates a network diagram description from this.
 
