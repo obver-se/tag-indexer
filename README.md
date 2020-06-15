@@ -15,7 +15,7 @@ setup:
    1. Put the starting urls in the scraper.js file where the TODO is located.
    2. set the required run time at the bottom of the file.
    3. run `npm run scrap`
-2. Mash the data
+2. Mash the data  
    run `npm run mash`  
    
 After this there should be a file called `output.json` that contains the data for the graph. You may then use this data for other purposes or put it into  the index.html file to view it as a network diagram
