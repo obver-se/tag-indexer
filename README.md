@@ -1,4 +1,4 @@
-# tag-_indexer
+# tag-indexer
 ## About
 tag-indexer is a Node.js program that scrapes websites and records each pages tag usage and generates a network diagram description from this.
 
