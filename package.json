@@ -6,7 +6,7 @@
   "dependencies": {
     "cheerio": "^1.0.0-rc.3",
     "html-tags": "^3.1.0",
-    "i": "^0.3.6",
+    "i": "^0.3.7",
     "supercrawler": "^2.0.0"
   },
   "devDependencies": {},
